@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Animació d'una imatge</title>
+    <style>
+        canvas {
+            border: 6px double #000;
+            background: white;
+        }
+        .img {
+            width: 400px;
+            height: 200px;
+        }
+        .titol {
+            width: 400px;
+            float:left;
+            font-size:24px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="menu">
+    <h1>Laberint</h1>
+    <h3>By David Junquero, Jan Jimenez & Joan Figueres</h3>
+    <br>
+    <h3>Selecciona el nivell</h3>
+
+    <div class="titol">Fàcil</div>
+    <div class="titol">Mitjà</div>
+    <div class="titol">Difícil</div>
+    <br><br>
+    <img id="MazeA" class="img" src="data/mazeA.gif" />
+    <img id="MazeB" class="img" src="data/mazeB.gif" />
+    <img id="MazeC" class="img" src="data/mazeC.gif" />
+
+    <p>
+        <input type="checkbox" id="mark" /> <label for="mark">Marcar el camí recorregut</label> <br /><br>
+        <input type="checkbox" id="auto" /> <label for="auto">Resolució automàtica</label> <br /><br>
+        <button id="start">Start</button>
+    </p>
+</div>
+
+<div id="maze" style="display:none;">
+    <canvas id="canvas" style="display:block;"></canvas> <br />
+    <div id="resources" style="display:none;">
+        <img id="pista" src="data/mazeA.gif" width="986" height="606" >
+        <img id="cara" src="data/dot15.jpg" width="15" height="15">
+    </div>
+
+
+</div>
+
+<script src="js/jquery-1.12.3.min.js"></script>
+<script src="js/maze.js"></script>
+
+</body>
+</html>
