@@ -1,0 +1,15 @@
+v1.1
+
+HTML5:
+
+- Añadido menú de selección (no funcional para la dificultad)
+
+js:
+
+- Corregido evento de rastro
+
+- Listener para el botón que inicia el juego
+
+data:
+
+- Añadidos 3 laberintos para 3 dificultades
