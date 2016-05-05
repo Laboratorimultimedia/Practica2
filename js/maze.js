@@ -64,24 +64,41 @@ $(document).ready(function(){
 
     temporitzador = window.requestAnimationFrame(dibuixaFotograma);  // s'actualitza a f=60Hz, 60fps
 
+
     // events
     $(document).keydown(function(e){
-        cara.moviment = {dx:0,dy:0};    // si la cara s'està movent, la parem
-        switch(e.keyCode){
-            case TECLA.AMUNT   : cara.moviment.dy = -1; break;  // ajustem la direcció del moviment d'acord a la tecla que s'ha premut
-            case TECLA.AVALL   : cara.moviment.dy =  1; break;
-            case TECLA.DRETA   : cara.moviment.dx =  1; break;
-            case TECLA.ESQUERRA: cara.moviment.dx = -1; break;
-        }
+       if(autopilot==false) {
+           cara.moviment = {dx: 0, dy: 0};    // si la cara s'està movent, la parem
+
+           switch (e.keyCode) {
+               case TECLA.AMUNT   :
+                   cara.moviment.dy = -1;
+                   break;  // ajustem la direcció del moviment d'acord a la tecla que s'ha premut
+               case TECLA.AVALL   :
+                   cara.moviment.dy = 1;
+                   break;
+               case TECLA.DRETA   :
+                   cara.moviment.dx = 1;
+                   break;
+               case TECLA.ESQUERRA:
+                   cara.moviment.dx = -1;
+                   break;
+           }
+       }
     });
 
     $(document).keyup(function(){
-        cara.moviment = {dx:0,dy:0};
+        if(autopilot!=true)cara.moviment = {dx:0,dy:0};
     });
 
     $("#mark").change(function(){
         mark=!mark;
     });
+
+    $("#auto").change(function(){
+        autopilot=!autopilot;
+    });
+
 
 });
 
@@ -119,6 +136,7 @@ function dibuixaFotograma() {
         context.drawImage(imatgeCara, cara.x, cara.y);
 
     }
+    else if(autopilot)expandDesition();
     window.requestAnimationFrame(dibuixaFotograma);  // es crida un cop cada f=60Hz, 60fps
 }
 
@@ -147,3 +165,95 @@ $("#start").click(function(e) {
     $("#menu").hide();
     $("#maze").show();
 });
+
+
+function expandDesition(){
+
+    var upHeuristic;
+    var downHeuristic;
+    var rightHeuristic;
+    var leftHeuristic;
+
+    var lowest;
+
+        // TOP
+    cara.y += -1;
+    if (hiHaCol_lisio()) {upHeuristic=50000}
+    else if (hiHaMarca(1)) {upHeuristic=40000}
+    else{
+        upHeuristic=(894-cara.x)+(580-cara.y); // Constant values are the x and y positions of the goal's cords
+    }
+    cara.y -= -1;
+
+    // DOWN
+    cara.y += 1;
+    if (hiHaCol_lisio()) {downHeuristic=50000}
+    else if (hiHaMarca(2)) {downHeuristic=40000}
+    else{
+        downHeuristic=(894-cara.x)+(580-cara.y); // Constant values are the x and y positions of the goal's cords
+    }
+    cara.y -= 1;
+
+    // RIGHT
+    cara.x += 1;
+    if (hiHaCol_lisio()) {rightHeuristic=50000}
+    else if (hiHaMarca(3)) {rightHeuristic=40000}
+    else{
+        rightHeuristic=(894-cara.x)+(580-cara.y); // Constant values are the x and y positions of the goal's cords
+    }
+    cara.x -= 1;
+
+    // LEFT
+    cara.x += -1;
+    if (hiHaCol_lisio()) {leftHeuristic=50000}
+    else if (hiHaMarca(4)) {leftHeuristic=40000}
+    else{
+        leftHeuristic=(894-cara.x)+(580-cara.y); // Constant values are the x and y positions of the goal's cords
+    }
+    cara.x -= -1;
+
+    alert("Up Heursitic= "+upHeuristic+"\n Down Heuristic= "+downHeuristic+"\n Right Heuristic= "+rightHeuristic+"\n Left Heuristic= "+leftHeuristic);
+    lowest=TECLA.AMUNT;
+    if(downHeuristic<upHeuristic)lowest=TECLA.AVALL;
+    if(rightHeuristic<downHeuristic&&rightHeuristic<upHeuristic)lowest=TECLA.DRETA;
+    if(leftHeuristic<rightHeuristic&&leftHeuristic<upHeuristic&&leftHeuristic<downHeuristic)lowest=TECLA.ESQUERRA;
+
+    switch (lowest) {
+        case TECLA.AMUNT   :
+            cara.moviment.dy = -1;
+            break;  // ajustem la direcció del moviment d'acord a la tecla que s'ha premut
+        case TECLA.AVALL   :
+            cara.moviment.dy = 1;
+            break;
+        case TECLA.DRETA   :
+            cara.moviment.dx = 1;
+            break;
+        case TECLA.ESQUERRA:
+            cara.moviment.dx = -1;
+            break;
+    }
+}
+
+function hiHaMarca(dir) {
+    // Agafem el bloc de píxels de la imatge on està situada la cara
+    if(dir==1)var imgData = context.getImageData(cara.x, cara.y-16, 1, 1);
+    else if(dir==2)var imgData = context.getImageData(cara.x, cara.y+16, 1, 1);
+    else if(dir==3)var imgData = context.getImageData(cara.x+16, cara.y, 1, 1);
+    else if(dir==4)var imgData = context.getImageData(cara.x-16, cara.y, 1, 1);
+    var pixels = imgData.data;
+
+    // Mirem tots els píxels del bloc
+    for (var i = 0; n = pixels.length, i < n; i += 4) {
+        var red = pixels[i];
+        var green = pixels[i+1];
+        var blue = pixels[i+2];
+        var alpha = pixels[i+3];
+
+        // Busquem un píxels de color negre, és a dir, la vora de la pista
+        if (red>0 && green>0 && blue>0&&blue<255) {
+            return true;
+        }
+    }
+    // Si arribem aquí, és que no hi ha col·lisió.
+    return false;
+}
