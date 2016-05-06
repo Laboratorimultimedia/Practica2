@@ -11,8 +11,11 @@ const TECLA={AMUNT:87,AVALL:83,DRETA:68,ESQUERRA:65, MAJUSCULES:16};  // codi de
 var teclaShift=false; // quan apretem la tecla Shift, avancem píxel a píxel
 var mark;        // no deixa rastre del camí recorregut
 var autopilot;
-
+var square=0;
 var temporitzador;  // animacions
+
+var back=false;
+var dirAnterior=TECLA.AVALL;
 
 $(document).ready(function(){
 
@@ -136,7 +139,25 @@ function dibuixaFotograma() {
         context.drawImage(imatgeCara, cara.x, cara.y);
 
     }
-    else if(autopilot)expandDesition();
+    else if(autopilot){
+        var path=expandDesition();
+
+        switch (path) {
+            case TECLA.AMUNT   :
+                cara.moviment.dy = -1;
+                break;  // ajustem la direcció del moviment d'acord a la tecla que s'ha premut
+            case TECLA.AVALL   :
+                cara.moviment.dy = 1;
+                break;
+            case TECLA.DRETA   :
+                cara.moviment.dx = 1;
+                break;
+            case TECLA.ESQUERRA:
+                cara.moviment.dx = -1;
+                break;
+        }
+    }
+
     window.requestAnimationFrame(dibuixaFotograma);  // es crida un cop cada f=60Hz, 60fps
 }
 
@@ -167,72 +188,174 @@ $("#start").click(function(e) {
 });
 
 
-function expandDesition(){
+function expandDesition() {
 
     var upHeuristic;
     var downHeuristic;
     var rightHeuristic;
     var leftHeuristic;
 
-    var lowest;
+    var heuristics;
 
-        // TOP
+    var lowest;
+    var aux;
+    var jump=false;
+
+    // TOP
     cara.y += -1;
-    if (hiHaCol_lisio()) {upHeuristic=50000}
-    else if (hiHaMarca(1)) {upHeuristic=40000}
-    else{
-        upHeuristic=(894-cara.x)+(580-cara.y); // Constant values are the x and y positions of the goal's cords
+    if (hiHaCol_lisio()) {
+        upHeuristic = 50000
+    }
+    else if (hiHaMarca(1)) {
+        upHeuristic = 40000
+    }
+    else {
+        upHeuristic = (894 - cara.x) + (580 - cara.y); // Constant values are the x and y positions of the goal's cords
     }
     cara.y -= -1;
 
     // DOWN
     cara.y += 1;
-    if (hiHaCol_lisio()) {downHeuristic=50000}
-    else if (hiHaMarca(2)) {downHeuristic=40000}
-    else{
-        downHeuristic=(894-cara.x)+(580-cara.y); // Constant values are the x and y positions of the goal's cords
+    if (hiHaCol_lisio()) {
+        downHeuristic = 50000
+    }
+    else if (hiHaMarca(2)) {
+        downHeuristic = 40000
+    }
+    else {
+        downHeuristic = (894 - cara.x) + (580 - cara.y); // Constant values are the x and y positions of the goal's cords
     }
     cara.y -= 1;
 
     // RIGHT
     cara.x += 1;
-    if (hiHaCol_lisio()) {rightHeuristic=50000}
-    else if (hiHaMarca(3)) {rightHeuristic=40000}
-    else{
-        rightHeuristic=(894-cara.x)+(580-cara.y); // Constant values are the x and y positions of the goal's cords
+    if (hiHaCol_lisio()) {
+        rightHeuristic = 50000
+    }
+    else if (hiHaMarca(3)) {
+        rightHeuristic = 40000
+    }
+    else {
+        rightHeuristic = (894 - cara.x) + (580 - cara.y); // Constant values are the x and y positions of the goal's cords
     }
     cara.x -= 1;
 
     // LEFT
     cara.x += -1;
-    if (hiHaCol_lisio()) {leftHeuristic=50000}
-    else if (hiHaMarca(4)) {leftHeuristic=40000}
-    else{
-        leftHeuristic=(894-cara.x)+(580-cara.y); // Constant values are the x and y positions of the goal's cords
+    if (hiHaCol_lisio()) {
+        leftHeuristic = 50000
+    }
+    else if (hiHaMarca(4)) {
+        leftHeuristic = 40000
+    }
+    else {
+        leftHeuristic = (894 - cara.x) + (580 - cara.y); // Constant values are the x and y positions of the goal's cords
     }
     cara.x -= -1;
 
-    alert("Up Heursitic= "+upHeuristic+"\n Down Heuristic= "+downHeuristic+"\n Right Heuristic= "+rightHeuristic+"\n Left Heuristic= "+leftHeuristic);
-    lowest=TECLA.AMUNT;
-    if(downHeuristic<upHeuristic)lowest=TECLA.AVALL;
-    if(rightHeuristic<downHeuristic&&rightHeuristic<upHeuristic)lowest=TECLA.DRETA;
-    if(leftHeuristic<rightHeuristic&&leftHeuristic<upHeuristic&&leftHeuristic<downHeuristic)lowest=TECLA.ESQUERRA;
-
-    switch (lowest) {
-        case TECLA.AMUNT   :
-            cara.moviment.dy = -1;
-            break;  // ajustem la direcció del moviment d'acord a la tecla que s'ha premut
-        case TECLA.AVALL   :
-            cara.moviment.dy = 1;
-            break;
-        case TECLA.DRETA   :
-            cara.moviment.dx = 1;
-            break;
-        case TECLA.ESQUERRA:
-            cara.moviment.dx = -1;
-            break;
+    if(upHeuristic >= 40000 && downHeuristic >= 40000 && rightHeuristic >= 40000 && leftHeuristic >= 40000 && back==false){
+        back = true;
+        if (dirAnterior==TECLA.AMUNT)lowest=TECLA.AVALL;
+        else if (dirAnterior==TECLA.AVALL)lowest=TECLA.AMUNT;
+        else if (dirAnterior==TECLA.DRETA)lowest=TECLA.ESQUERRA;
+        else if (dirAnterior==TECLA.ESQUERRA)lowest=TECLA.DRETA;
+        return(lowest);
     }
+
+    if (back) {
+
+        // Completar siguiendo linea derecha
+        // TOP
+        cara.y += -1;
+        if (hiHaCol_lisio()) {
+            upHeuristic = 50000
+
+        }
+        else if (!hiHaMarca(1)) {
+            back = false;
+            upHeuristic = 0;
+        }
+        else if (dirAnterior == TECLA.ESQUERRA) upHeuristic = 0;
+        else if (dirAnterior == TECLA.AVALL) upHeuristic = 60;
+        else if (dirAnterior == TECLA.DRETA) upHeuristic = 10;
+        else upHeuristic = 50;
+
+        cara.y -= -1;
+
+        // DOWN
+        cara.y += 1;
+        if (hiHaCol_lisio()) {
+            downHeuristic = 50000
+        }
+        else if (!hiHaMarca(1)) {
+            back = false;
+            downHeuristic = 0;
+        }
+        else if (dirAnterior == TECLA.DRETA) downHeuristic = 0;
+        else if (dirAnterior == TECLA.AMUNT) downHeuristic = 60;
+        else if (dirAnterior == TECLA.ESQUERRA) downHeuristic = 10;
+        else downHeuristic = 50;
+
+        cara.y -= 1;
+
+        // RIGHT
+        cara.x += 1;
+        if (hiHaCol_lisio()) {
+            rightHeuristic = 50000
+        }
+        else if (!hiHaMarca(1)) {
+            back = false;
+            rightHeuristic = 0;
+        }
+        else if (dirAnterior == TECLA.AMUNT) rightHeuristic = 0;
+        else if (dirAnterior == TECLA.ESQUERRA) rightHeuristic =60;
+        else if (dirAnterior == TECLA.AVALL) rightHeuristic = 10;
+        else rightHeuristic = 50;
+
+        cara.x -= 1;
+
+        // LEFT
+        if (hiHaCol_lisio()) {
+            leftHeuristic = 50000
+        }
+        else if (!hiHaMarca(1)) {
+            back = false;
+            leftHeuristic = 0;
+        }
+        else if (dirAnterior == TECLA.AVALL) leftHeuristic = 0;
+        else if (dirAnterior == TECLA.DRETA) leftHeuristic = 60;
+        else if (dirAnterior == TECLA.AMUNT) leftHeuristic = 10;
+        else leftHeuristic = 50;
+
+        cara.x -= -1;
+
+    }
+
+    if (upHeuristic < 0)upHeuristic *= -1;
+    if (downHeuristic < 0)downHeuristic *= -1;
+    if (rightHeuristic < 0)rightHeuristic *= -1;
+    if (leftHeuristic < 0)leftHeuristic *= -1;
+
+    alert("Up Heursitic= " + upHeuristic + "\n Down Heuristic= " + downHeuristic + "\n Right Heuristic= " + rightHeuristic + "\n Left Heuristic= " + leftHeuristic + "\n Back= " + back+ "\n Anterior= " + dirAnterior);
+
+    lowest = TECLA.AMUNT;
+    if (downHeuristic < upHeuristic) {
+        lowest = TECLA.AVALL;
+        aux = TECLA.AMUNT;
+    }
+    if (rightHeuristic < downHeuristic && rightHeuristic < upHeuristic) {
+        lowest = TECLA.DRETA;
+        if (downHeuristic < upHeuristic)aux = TECLA.AVALL;
+    }
+    if (leftHeuristic < rightHeuristic && leftHeuristic < upHeuristic && leftHeuristic < downHeuristic) {
+        lowest = TECLA.ESQUERRA;
+        if (rightHeuristic < upHeuristic && rightHeuristic < downHeuristic)aux = TECLA.DRETA;
+    }
+    dirAnterior=lowest;
+    return(lowest);
 }
+
+
 
 function hiHaMarca(dir) {
     // Agafem el bloc de píxels de la imatge on està situada la cara
